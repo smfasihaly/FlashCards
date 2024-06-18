@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Card</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="header-buttons">
+        <button id="stats-button">Show Stats</button>
+        <button id="show-all-button">Show All</button>
+        <button id="previous-failed-button">Previous Failed</button>
+        <button id="previous-flipped-button">Previous Just Flipped</button>
+    </div>
+    <div class="cards-container" id="cards-container">
+        <!-- Flip cards will be dynamically inserted here -->
+    </div>
+    <div class="pagination-controls" id="pagination-controls">
+        <button id="prev-page">Previous</button>
+        <span id="page-info"></span>
+        <button id="next-page">Next</button>
+    </div>
+    <div id="stats-output"></div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
