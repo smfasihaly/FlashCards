@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flip Card</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+
 </head>
+
 <body>
     <div class="header-buttons">
-        <button id="stats-button">Show Stats</button>
+        <button id="login-button" style="display: {{ 'none' if user_logged_in else 'block' }};">Login/Signup</button>
+        <button id="stats-button">Save Stats</button>
         <button id="show-all-button">Show All</button>
         <button id="previous-failed-button">Previous Failed</button>
         <button id="previous-flipped-button">Previous Just Flipped</button>
+        <button id="logout-button" style="display: {{ 'block' if user_logged_in else 'none' }};">Logout</button>
     </div>
     <div class="cards-container" id="cards-container">
         <!-- Flip cards will be dynamically inserted here -->
@@ -22,6 +28,34 @@
         <button id="next-page">Next</button>
     </div>
     <div id="stats-output"></div>
+
+    <!-- Login/Signup Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Login</h2>
+            <form id="login-form">
+                <label for="login-username">Username:</label>
+                <input type="text" id="login-username" name="username" required>
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" name="password" required>
+                <button type="submit">Login</button>
+                <p>Don't have an account? <a href="#" id="show-signup-form">Sign up</a></p>
+            </form>
+            <form id="signup-form" style="display:none;">
+                <label for="signup-username">Username:</label>
+                <input type="text" id="signup-username" name="username" required>
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" name="password" required>
+                <button type="submit">Sign up</button>
+                <p>Already have an account? <a href="#" id="show-login-form">Login</a></p>
+            </form>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script type="text/javascript">
+        var userLoggedIn = {{ user_logged_in| tojson }};
+    </script>
 </body>
+
 </html>
