@@ -199,14 +199,67 @@ button:hover {
     pointer-events: none;
 }
 
-.header-buttons {
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 10px 20px;
+    box-sizing: border-box;
     position: relative;
-    padding: 20px;
-    /* right: 20px; */
+    background-color: white; /* Change header background to white */
+    border-bottom: 1px solid #e0e0e0; /* Optional: Add a bottom border for separation */
+}
+
+.header-buttons {
     display: flex;
     gap: 10px;
-    z-index: 1000; /* Ensure buttons are on top */
 }
+
+.header-buttons button {
+    color: black; /* Change button text color to black */
+    background-color: white; /* Change button background to white */
+    border: 0px;
+    padding: 15px 25px; /* Add padding for tile effect */
+    border-radius: 3px; /* Less rounded corners */
+    transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition effects */
+    text-transform: uppercase; /* Uppercase text for tile look */
+    font-size: 14px; /* Adjust font size */
+    font-weight: bold; /* Make text bold */
+    cursor: pointer; /* Maintain pointer cursor for clickable effect */
+}
+
+.header-buttons button:hover {
+    background-color: #f0f0f0; /* Light grey background on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    position: absolute;
+    right: 0px;
+    top: 0;
+    bottom: 0;
+    padding: 22px 18px;
+    background-color: whitesmoke;
+    font-weight: bold;
+    border-radius: 3px;
+}
+
+.user-info i {
+    font-size: 24px;
+    color: black; /* Change icon color to white */
+}
+
+#username {
+    font-size: 16px;
+    color: black; /* Change color to white */
+    margin-left: 5px;
+}
+
 /* Modal Styles */
 .modal {
     display: none; /* Show modal by default */

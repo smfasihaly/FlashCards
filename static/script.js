@@ -1,3 +1,13 @@
+let stats = {
+    success: 0,
+    failure: 0,
+    justFlipped: 0,
+    justFlippedCards: [],
+    failureCards: []
+};
+let cardStates = [];
+let currentView = 'All';
+
 document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     const perPage = 9;
@@ -9,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const showLoginFormLink = document.getElementById('show-login-form');
     const modalTitle = document.getElementById('modal-title');
     const loginModal = document.getElementById('login-modal');
+    const saveStatsButton = document.getElementById('stats-button');
 
     loginModal.style.display = userLoggedIn ? 'none' : 'block';
     loginButton.style.display = userLoggedIn ? 'none' : 'block';
@@ -48,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginButton.style.display = 'block';
                     loginModal.style.display = 'block';
                     alert('Logged out successfully!');
+                    window.location.reload();
                 }
             })
             .catch(error => console.error('Error during logout:', error));
@@ -84,7 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginModal.style.display = 'none';
                     loginButton.style.display = 'none';
                     logoutButton.style.display = 'block';
-                    fetchData(1);
+                   // fetchData(1);
+                    window.location.reload();
                 } else {
                     alert('Error: ' + data.error);
                 }
@@ -117,9 +130,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('stats-button').addEventListener('click', showStats);
-    document.getElementById('show-all-button').addEventListener('click', () => fetchData(currentPage));
-    document.getElementById('previous-failed-button').addEventListener('click', () => loadVerbs('Failure', currentPage));
-    document.getElementById('previous-flipped-button').addEventListener('click', () => loadVerbs('JustFlipped', currentPage));
+
+
+    document.getElementById('show-all-button').addEventListener('click', () => {
+        currentView = 'All';
+        fetchData(currentPage);
+        showSaveStatsButton();  // Show the Save Stats button when showing all data
+    });
+    
+    document.getElementById('previous-failed-button').addEventListener('click', () => {
+        currentView = 'Failure';
+        loadVerbs('Failure', currentPage);
+        hideSaveStatsButton();  // Hide the Save Stats button when showing previously failed data
+    });
+    
+    document.getElementById('previous-flipped-button').addEventListener('click', () => {
+        currentView = 'JustFlipped';
+        loadVerbs('JustFlipped', currentPage);
+        hideSaveStatsButton();  // Hide the Save Stats button when showing previous flipped data
+    });
+    
+    function hideSaveStatsButton() {
+        saveStatsButton.style.display = 'none';
+    }
+    
+    function showSaveStatsButton() {
+        saveStatsButton.style.display = 'block';
+    }
+
 
     document.getElementById('prev-page').addEventListener('click', () => {
         if (currentPage > 1) {
@@ -177,7 +215,13 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => console.error('Error loading verbs:', error));
 
-        stats = { success: 0, failure: 0, justFlipped: 0, justFlippedCards: [], failureCards: [] };
+        stats = {
+            success: 0,
+            failure: 0,
+            justFlipped: 0,
+            justFlippedCards: [],
+            failureCards: []
+        };
         cardStates = [];
     }
 
@@ -222,11 +266,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    function showStats() {
+        const statsOutput = document.getElementById('stats-output');
+        statsOutput.innerHTML = `
+            <button id="close-stats">&times;</button>
+            <p>Success: ${stats.success}</p>
+            <p>Failure: ${stats.failure}</p>
+            <p>Just Flipped: ${stats.justFlipped}</p>
+        `;
+        statsOutput.style.display = 'block';
+        document.querySelector('.cards-container').classList.add('blur');
+        document.getElementById('close-stats').addEventListener('click', closeStats);
+    
+        // Only send stats to the server if viewing all data
+        if (currentView === 'All') {
+            sendStatsToServer();
+        }
+    }
+    
     function sendStatsToServer() {
         const statsData = {
             justFlipped: stats.justFlippedCards,
-            failure: stats.failureCards,
-           
+            failure: stats.failureCards
         };
     
         fetch('/save_stats', {
@@ -240,40 +301,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
 
-    function showStats() {
-        const statsOutput = document.getElementById('stats-output');
-        statsOutput.innerHTML = `
-            <button id="close-stats">&times;</button>
-            <p>Success: ${stats.success}</p>
-            <p>Failure: ${stats.failure}</p>
-            <p>Just Flipped: ${stats.justFlipped}</p>
-        `;
-        statsOutput.style.display = 'block';
-        document.querySelector('.cards-container').classList.add('blur');
-        document.getElementById('close-stats').addEventListener('click', closeStats);
-        sendStatsToServer();
-    }
-
     function closeStats() {
         document.getElementById('stats-output').style.display = 'none';
         document.querySelector('.cards-container').classList.remove('blur');
     }
+
+    function hideSaveStatsButton() {
+        saveStatsButton.style.display = 'none';
+    }
+
+    function showSaveStatsButton() {
+        saveStatsButton.style.display = 'block';
+    }
+
+
 });
 
-let stats = {
-    success: 0,
-    failure: 0,
-    justFlipped: 0,
-    justFlippedCards: [],
-    failureCards: []
-};
-let cardStates = [];
+
+
 function checkEnter(event, index, currentPage) {
     if (event.key === 'Enter') {
         const card = event.target.closest('.flip-card');
         flipCard(card, index, currentPage);
     }
 }
+
 function flipCard(card, index, page) {
     const innerCard = document.getElementById(`card-inner-${index}`);
     const inputValue = document.getElementById(`inputValue-${index}`).value.toLowerCase();
@@ -304,6 +356,19 @@ function flipCard(card, index, page) {
             flipCardBack.style.backgroundColor = "#28a745"; // Green
             outputMessage.textContent = "Success! The values match.";
             stats.success++;
+
+            // Remove from previous failed or flipped data if correct
+            const verb = {
+                Italian: document.querySelector(`#card-inner-${index} .flip-card-front h2`).textContent,
+                English: backTitle
+            };
+            if (currentView === 'Failure') {
+                // Delete verb from Failure sheet
+                removeVerbFromSheet(verb, 'Failure');
+            } else if (currentView === 'JustFlipped') {
+                // Delete verb from JustFlipped sheet
+                removeVerbFromSheet(verb, 'JustFlipped');
+            }
         } else {
             flipCardBack.style.backgroundColor = "#dc3545"; // Red
             outputMessage.textContent = "Failure. The values do not match.";
@@ -317,4 +382,27 @@ function flipCard(card, index, page) {
 
     innerCard.classList.toggle('flipped');
     sessionStorage.setItem(cardStateKey, JSON.stringify({ flipped: !flipped }));
+}
+
+function removeVerbFromSheet(verb, sheetName) {
+    fetch('/remove_verb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verb, sheetName })
+    })
+        .then(response => response.json())
+        .then(data => console.log(`Verb removed from ${sheetName} sheet:`, data))
+        .catch(error => console.error(`Error removing verb from ${sheetName} sheet:`, error));
+}
+
+
+function removeVerbFromSheet(verb, sheetName) {
+    fetch('/remove_verb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verb, sheetName })
+    })
+        .then(response => response.json())
+        .then(data => console.log(`Verb removed from ${sheetName} sheet:`, data))
+        .catch(error => console.error(`Error removing verb from ${sheetName} sheet:`, error));
 }
