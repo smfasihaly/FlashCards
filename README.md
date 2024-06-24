@@ -66,25 +66,7 @@ This is a web-based flashcard application for learning Italian verbs. It include
 
     Open a web browser and go to `http://127.0.0.1:5000`.
 
-## Project Structure
-FlashCards/
-│
-├── static/
-│ ├── images/
-│ │ └── image.png
-│ ├── styles.css
-│ └── script.js
-│
-├── templates/
-│ └── index.html
-│
-├── learnITalian/
-│ └── Data/
-│ └── words.xlsx
-│
-├── app.py
-├── requirements.txt
-└── README.md
+
 
 
 

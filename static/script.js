@@ -20,6 +20,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const loginModal = document.getElementById('login-modal');
     const saveStatsButton = document.getElementById('stats-button');
+    const infoButton = document.getElementById('info-button');
+    const howToPlayModal = document.getElementById('how-to-play-modal');
+    const closeHowToPlay = document.getElementById('close-how-to-play');
+
+    infoButton.addEventListener('click', () => {
+        howToPlayModal.style.display = 'block';
+    });
+
+    closeHowToPlay.addEventListener('click', () => {
+        howToPlayModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === howToPlayModal) {
+            howToPlayModal.style.display = 'none';
+        }
+    });
 
     loginModal.style.display = userLoggedIn ? 'none' : 'block';
     loginButton.style.display = userLoggedIn ? 'none' : 'block';
