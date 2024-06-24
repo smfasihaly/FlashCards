@@ -4,6 +4,7 @@ let isFlippedLanguage = localStorage.getItem('isFlippedLanguage') === 'true';
 let currentView = localStorage.getItem('currentView') || 'All';
 
 function resetStatsAndCardStates() {
+    
     return {
         success: 0,
         failure: 0,
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const links = headerButtons.querySelectorAll('a');
             links.forEach(link => link.classList.remove('active'));
         }
-        setActive();
+        setActiveAndResetAll();
     });
 
     // Refactored: Abstracted the logic to find and add 'active' class to a link
@@ -49,7 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Set the initial active link based on currentView
-    function setActive() {
+    function setActiveAndResetAll() {
+        sessionStorage.clear();
+        stats = resetStatsAndCardStates();
+        updateStatsPanel()
+        cardStates =[]
+        currentPage =1;
         if (currentView === 'All') {
             addActiveClass('show-all-button'); // This is refactored code
         } else if (currentView === 'Failure') {
@@ -58,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addActiveClass('previous-flipped-button'); // This is refactored code
         }
     }
-    setActive();
+    setActiveAndResetAll();
 
     languageDirectionText.textContent = isFlippedLanguage ? 'English to Italian' : 'Italian to English';
 
@@ -261,14 +267,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('previous-failed-button').addEventListener('click', () => {
         currentView = 'Failure';
         localStorage.setItem('currentView', currentView);
-        loadVerbs('Failure', 1, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
+        loadVerbs('Failure', 1,true);
         hideSaveStatsButton();  // Hide the Save Stats button when showing previously failed data
     });
 
     document.getElementById('previous-flipped-button').addEventListener('click', () => {
         currentView = 'JustFlipped';
         localStorage.setItem('currentView', currentView);
-        loadVerbs('JustFlipped', 1, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
+        loadVerbs('JustFlipped', 1, true);
         hideSaveStatsButton();  // Hide the Save Stats button when showing previous flipped data
     });
 
@@ -299,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function saveCardStates(page) {
-        const cardStates = [];
+       const cardStates = [];
         document.querySelectorAll('.flip-card-inner').forEach((card, index) => {
             const isFlipped = card.classList.contains('flipped');
             const cardColor = document.getElementById(`flip-card-back-${index}`).style.backgroundColor;
@@ -324,23 +330,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('beforeunload', sendStatsToServer);
 
-    function loadVerbs(sheetName, page = 1) {
+    function loadVerbs(sheetName, page = 1,isRandom = false) {
         languageDirection = isFlippedLanguage ? 'English to Italian' : 'Italian to English'
 
-        sessionStorage.clear();
-        fetch(`/get_verbs/${sheetName}?page=${page}&per_page=${perPage}&language_direction=${languageDirection}`)
+        // sessionStorage.clear();
+        fetch(`/get_verbs/${sheetName}?page=${page}&per_page=${perPage}&language_direction=${languageDirection}&isRandom=${isRandom}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
                     console.error(data.error);
                 } else {
-                    updatePaginationControls(data.total_pages, data.current_page);
                     displayCards(data.verbs);
+                    updatePaginationControls(data.total_pages, data.current_page);
+                    restoreCardStates(page);
                 }
             })
             .catch(error => console.error('Error loading verbs:', error));
         stats = resetStatsAndCardStates(); // This is refactored code
-        cardStates = [];
+        //cardStates = [];
     }
 
 
@@ -442,7 +449,6 @@ function flipCard(card, index, page) {
 
     if (!innerCard.classList.contains('flipped') && !cardStates[cardStateKey]) {
         document.getElementById(`inputValue-${index}`).disabled = true;
-        cardStates[cardStateKey] = true;
         const inputValues = inputValue.split(',').map(value => value.trim().replace(/to /g, ''));
         const significantTitles = backTitle.split(',').map(title => title.trim().replace(/to /g, ''));
 
@@ -489,7 +495,6 @@ function flipCard(card, index, page) {
     }
 
     innerCard.classList.toggle('flipped');
-    sessionStorage.setItem(cardStateKey, JSON.stringify({ flipped: !flipped }));
 }
 
 

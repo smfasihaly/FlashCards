@@ -37,9 +37,10 @@ def get_verbs():
         'current_page': page
     }
     return jsonify(response_data)
-
+sheet_data = []
 @app.route('/get_verbs/<sheet_name>')
 def get_verbs_from_sheet(sheet_name):
+    global sheet_data
     username = session.get('user')
     if not username:
         return jsonify({"error": "User not logged in"}), 401
@@ -47,16 +48,21 @@ def get_verbs_from_sheet(sheet_name):
     language_direction = request.args.get('language_direction')
     
     try:
-        data = pd.read_excel(excel_file_path, sheet_name=sheet_name)
+        
+        isRandom = (request.args.get('isRandom') != 'false')
+        if isRandom == True or len(sheet_data) == 0:
+            data = pd.read_excel(excel_file_path, sheet_name=sheet_name)
         # Filter data by username and language direction
-        filtered_data = data[(data['Username'] == username) & (data['LanguageDirection'] == language_direction)]
-        sheet_data = filtered_data.to_dict(orient='records')
-        random.shuffle(sheet_data)
+            filtered_data = data[(data['Username'] == username) & (data['LanguageDirection'] == language_direction)]
+            sheet_data = filtered_data.to_dict(orient='records')
+            random.shuffle(sheet_data)
+        
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 9))
         start = (page - 1) * per_page
         end = start + per_page
         total_pages = (len(sheet_data) + per_page - 1) // per_page
+      
         response_data = {
             'verbs': sheet_data[start:end],
             'total_pages': total_pages,
