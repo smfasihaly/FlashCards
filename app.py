@@ -40,14 +40,16 @@ def get_verbs():
 
 @app.route('/get_verbs/<sheet_name>')
 def get_verbs_from_sheet(sheet_name):
-    username = session.get('user')  
+    username = session.get('user')
     if not username:
         return jsonify({"error": "User not logged in"}), 401
 
+    language_direction = request.args.get('language_direction')
+    
     try:
         data = pd.read_excel(excel_file_path, sheet_name=sheet_name)
-        # Filter data by username
-        filtered_data = data[data['Username'] == username]
+        # Filter data by username and language direction
+        filtered_data = data[(data['Username'] == username) & (data['LanguageDirection'] == language_direction)]
         sheet_data = filtered_data.to_dict(orient='records')
         random.shuffle(sheet_data)
         page = int(request.args.get('page', 1))
@@ -63,34 +65,37 @@ def get_verbs_from_sheet(sheet_name):
         return jsonify(response_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-    
+
     
 @app.route('/save_stats', methods=['POST'])
 def save_stats():
     stats_data = request.json
     just_flipped = stats_data.get('justFlipped', [])
     failure = stats_data.get('failure', [])
+    language_direction = stats_data.get('languageDirection')
     username = session['user']
 
     # Load existing stats data
     try:
         existing_just_flipped_data = pd.read_excel(excel_file_path, sheet_name='JustFlipped')
     except Exception:
-        existing_just_flipped_data = pd.DataFrame(columns=['Italian', 'English', 'Username'])
+        existing_just_flipped_data = pd.DataFrame(columns=['Italian', 'English', 'Username', 'LanguageDirection'])
 
     try:
         existing_failure_data = pd.read_excel(excel_file_path, sheet_name='Failure')
     except Exception:
-        existing_failure_data = pd.DataFrame(columns=['Italian', 'English', 'Username'])
+        existing_failure_data = pd.DataFrame(columns=['Italian', 'English', 'Username', 'LanguageDirection'])
 
     # Remove duplicates for just flipped data
     just_flipped_df = pd.DataFrame(just_flipped, columns=['Italian', 'English'])
     just_flipped_df['Username'] = username
+    just_flipped_df['LanguageDirection'] = language_direction
     if not just_flipped_df.empty:
         existing_just_flipped_data = existing_just_flipped_data[
             ~((existing_just_flipped_data['Italian'].isin(just_flipped_df['Italian'])) &
               (existing_just_flipped_data['English'].isin(just_flipped_df['English'])) &
-              (existing_just_flipped_data['Username'] == username))
+              (existing_just_flipped_data['Username'] == username) &
+              (existing_just_flipped_data['LanguageDirection'] == language_direction))
         ]
         updated_just_flipped_data = pd.concat([existing_just_flipped_data, just_flipped_df], ignore_index=True)
     else:
@@ -99,11 +104,13 @@ def save_stats():
     # Remove duplicates for failure data
     failure_df = pd.DataFrame(failure, columns=['Italian', 'English'])
     failure_df['Username'] = username
+    failure_df['LanguageDirection'] = language_direction
     if not failure_df.empty:
         existing_failure_data = existing_failure_data[
             ~((existing_failure_data['Italian'].isin(failure_df['Italian'])) &
               (existing_failure_data['English'].isin(failure_df['English'])) &
-              (existing_failure_data['Username'] == username))
+              (existing_failure_data['Username'] == username) &
+              (existing_failure_data['LanguageDirection'] == language_direction))
         ]
         updated_failure_data = pd.concat([existing_failure_data, failure_df], ignore_index=True)
     else:

@@ -11,17 +11,26 @@
 
 <body>
     <div class="header">
+        <div class="header-left">
+            <h1><i class="fas fa-clone"></i> FLASH CARD</h1>
+        </div>
         <div class="header-buttons">
-            <button id="login-button" style="display: {{ 'none' if user_logged_in else 'block' }};">Login/Signup</button>
-            <button id="stats-button">Save Stats</button>
-            <button id="show-all-button">Show All</button>
-            <button id="previous-failed-button">Previous Failed</button>
-            <button id="previous-flipped-button">Previous Just Flipped</button>
-            <button id="logout-button" style="display: {{ 'block' if user_logged_in else 'none' }};">Logout</button>
+            <a href="#" id="login-button" style="display: {{ 'none' if user_logged_in else 'block' }};">Login/Signup</a>
+            <a href="#" id="stats-button">Save Stats</a>
+            <a href="#" id="show-all-button">Show All</a>
+            <a href="#" id="previous-failed-button">Previous Failed</a>
+            <a href="#" id="previous-flipped-button">Previous Just Flipped</a>
+            <a href="#" id="flip-language-button">
+                <i class="fas fa-exchange-alt"></i> Flip Language
+            </a>
+            <a href="#" id="logout-button" style="display: {{ 'block' if user_logged_in else 'none' }};">Logout</a>
         </div>
         <div class="user-info" style="display: {{ 'block' if user_logged_in else 'none' }};">
             <i class="fas fa-user-circle"></i>
             <span id="username">{{ username }}</span>
+        </div>
+        <div class="language-direction">
+            <span id="language-direction-text">{{ 'Italian to English' if not is_flipped_language else 'English to Italian' }}</span>
         </div>
         <div class="info-icon">
             <i class="fas fa-info-circle" id="info-button"></i>

@@ -6,7 +6,8 @@ let stats = {
     failureCards: []
 };
 let cardStates = [];
-let currentView = 'All';
+let isFlippedLanguage = localStorage.getItem('isFlippedLanguage') === 'true';
+let currentView = localStorage.getItem('currentView') || 'All';
 
 document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
@@ -23,19 +24,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const infoButton = document.getElementById('info-button');
     const howToPlayModal = document.getElementById('how-to-play-modal');
     const closeHowToPlay = document.getElementById('close-how-to-play');
+    const flipLanguageButton = document.getElementById('flip-language-button');
+    const languageDirectionText = document.getElementById('language-direction-text');
+    const headerButtons = document.querySelector('.header-buttons');
 
+    headerButtons.addEventListener('click', (event) => {
+        if (event.target.tagName === 'A') {
+            const links = headerButtons.querySelectorAll('a');
+            links.forEach(link => link.classList.remove('active')); 
+        }
+       setActive();
+    });
+
+     // Set the initial active link based on currentView
+    function setActive(){
+        if (currentView === 'All') {
+            const showAllLink = document.getElementById('show-all-button');
+            if (showAllLink) {
+                showAllLink.classList.add('active');
+            }
+        } else if (currentView === 'Failure') {
+            const previousFailedLink = document.getElementById('previous-failed-button');
+            if (previousFailedLink) {
+                previousFailedLink.classList.add('active');
+            }
+        } else if (currentView === 'JustFlipped') {
+            const previousFlippedLink = document.getElementById('previous-flipped-button');
+            if (previousFlippedLink) {
+                previousFlippedLink.classList.add('active');
+            }
+        }
+    }
+    setActive();
+    
+    languageDirectionText.textContent = isFlippedLanguage ? 'English to Italian' : 'Italian to English';
+
+    
     infoButton.addEventListener('click', () => {
         howToPlayModal.style.display = 'block';
+        document.querySelector('.cards-container').classList.add('blur');
     });
 
     closeHowToPlay.addEventListener('click', () => {
         howToPlayModal.style.display = 'none';
+        document.querySelector('.cards-container').classList.remove('blur');
     });
 
     window.addEventListener('click', (event) => {
         if (event.target === howToPlayModal) {
             howToPlayModal.style.display = 'none';
+            document.querySelector('.cards-container').classList.remove('blur');
+
         }
+    });
+
+
+    flipLanguageButton.addEventListener('click', () => {
+        stats = {
+            success: 0,
+            failure: 0,
+            justFlipped: 0,
+            justFlippedCards: [],
+            failureCards: []
+        };
+        cardStates = [];
+        isFlippedLanguage = !isFlippedLanguage;
+        localStorage.setItem('isFlippedLanguage', isFlippedLanguage);
+        languageDirectionText.textContent = isFlippedLanguage ? 'English to Italian' : 'Italian to English';
+         if (currentView === 'All') {
+        fetchData(currentPage);
+    } else if (currentView === 'Failure') {
+        loadVerbs('Failure', currentPage);
+    } else if (currentView === 'JustFlipped') {
+        loadVerbs('JustFlipped', currentPage);
+    }
     });
 
     loginModal.style.display = userLoggedIn ? 'none' : 'block';
@@ -113,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginModal.style.display = 'none';
                     loginButton.style.display = 'none';
                     logoutButton.style.display = 'block';
-                   // fetchData(1);
+                    // fetchData(1);
                     window.location.reload();
                 } else {
                     alert('Error: ' + data.error);
@@ -151,26 +213,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('show-all-button').addEventListener('click', () => {
         currentView = 'All';
+        localStorage.setItem('currentView', currentView);
         fetchData(currentPage);
         showSaveStatsButton();  // Show the Save Stats button when showing all data
     });
-    
+
     document.getElementById('previous-failed-button').addEventListener('click', () => {
         currentView = 'Failure';
-        loadVerbs('Failure', currentPage);
+        localStorage.setItem('currentView', currentView);
+        loadVerbs('Failure', currentPage, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
         hideSaveStatsButton();  // Hide the Save Stats button when showing previously failed data
     });
-    
+
     document.getElementById('previous-flipped-button').addEventListener('click', () => {
         currentView = 'JustFlipped';
-        loadVerbs('JustFlipped', currentPage);
+        localStorage.setItem('currentView', currentView);
+        loadVerbs('JustFlipped', currentPage, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
         hideSaveStatsButton();  // Hide the Save Stats button when showing previous flipped data
     });
-    
+
     function hideSaveStatsButton() {
         saveStatsButton.style.display = 'none';
     }
-    
+
     function showSaveStatsButton() {
         saveStatsButton.style.display = 'block';
     }
@@ -219,8 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeunload', sendStatsToServer);
 
     function loadVerbs(sheetName, page = 1) {
+        languageDirection = isFlippedLanguage ? 'English to Italian' : 'Italian to English'
+
         sessionStorage.clear();
-        fetch(`/get_verbs/${sheetName}?page=${page}&per_page=${perPage}`)
+        fetch(`/get_verbs/${sheetName}?page=${page}&per_page=${perPage}&language_direction=${languageDirection}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
@@ -254,11 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <div class="flip-card-inner" id="card-inner-${index}">
                     <div class="flip-card-front">
-                        <h2>${verb['Italian']}</h2>
+                        <h2>${isFlippedLanguage ? verb['English'] : verb['Italian']}</h2>
                         <input type="text" autocomplete="off" placeholder="enter here" id="inputValue-${index}" onkeydown="checkEnter(event, ${index}, ${currentPage})" onclick="event.stopPropagation()" />
                     </div>
                     <div class="flip-card-back" id="flip-card-back-${index}">
-                        <h2>${verb['English']}</h2>
+                        <h2>${isFlippedLanguage ? verb['Italian'] : verb['English']}</h2>
                         <p id="outputMessage-${index}"></p>
                     </div>
                 </div>
@@ -294,19 +361,21 @@ document.addEventListener('DOMContentLoaded', () => {
         statsOutput.style.display = 'block';
         document.querySelector('.cards-container').classList.add('blur');
         document.getElementById('close-stats').addEventListener('click', closeStats);
-    
+
         // Only send stats to the server if viewing all data
         if (currentView === 'All') {
             sendStatsToServer();
         }
+
     }
-    
+
     function sendStatsToServer() {
         const statsData = {
             justFlipped: stats.justFlippedCards,
-            failure: stats.failureCards
+            failure: stats.failureCards,
+            languageDirection: isFlippedLanguage ? 'English to Italian' : 'Italian to English'
         };
-    
+
         fetch('/save_stats', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -316,11 +385,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => console.log('Statistics saved:', data))
             .catch(error => console.error('Error saving statistics:', error));
     }
-    
+
+
 
     function closeStats() {
         document.getElementById('stats-output').style.display = 'none';
         document.querySelector('.cards-container').classList.remove('blur');
+        window.location.reload();
     }
 
     function hideSaveStatsButton() {
@@ -346,6 +417,7 @@ function checkEnter(event, index, currentPage) {
 function flipCard(card, index, page) {
     const innerCard = document.getElementById(`card-inner-${index}`);
     const inputValue = document.getElementById(`inputValue-${index}`).value.toLowerCase();
+    const frontTitle = document.querySelector(`#card-inner-${index} .flip-card-front h2`).textContent.toLowerCase();
     const backTitle = document.querySelector(`#card-inner-${index} .flip-card-back h2`).textContent.toLowerCase();
     const outputMessage = document.getElementById(`outputMessage-${index}`);
     const flipCardBack = document.getElementById(`flip-card-back-${index}`);
@@ -366,8 +438,9 @@ function flipCard(card, index, page) {
             outputMessage.textContent = "";
             stats.justFlipped++;
             stats.justFlippedCards.push({
-                Italian: document.querySelector(`#card-inner-${index} .flip-card-front h2`).textContent,
-                English: backTitle
+                Italian: isFlippedLanguage ? backTitle : frontTitle,
+                English: isFlippedLanguage ? frontTitle : backTitle,
+
             });
         } else if (allMatch) {
             flipCardBack.style.backgroundColor = "#28a745"; // Green
@@ -376,8 +449,9 @@ function flipCard(card, index, page) {
 
             // Remove from previous failed or flipped data if correct
             const verb = {
-                Italian: document.querySelector(`#card-inner-${index} .flip-card-front h2`).textContent,
-                English: backTitle
+                Italian: isFlippedLanguage ? backTitle : frontTitle,
+                English: isFlippedLanguage ? frontTitle : backTitle,
+
             };
             if (currentView === 'Failure') {
                 // Delete verb from Failure sheet
@@ -391,8 +465,9 @@ function flipCard(card, index, page) {
             outputMessage.textContent = "Failure. The values do not match.";
             stats.failure++;
             stats.failureCards.push({
-                Italian: document.querySelector(`#card-inner-${index} .flip-card-front h2`).textContent,
-                English: backTitle
+                Italian: isFlippedLanguage ? backTitle : frontTitle,
+                English: isFlippedLanguage ? frontTitle : backTitle,
+
             });
         }
     }
