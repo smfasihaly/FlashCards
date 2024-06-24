@@ -93,6 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loginModal.style.display = userLoggedIn ? 'none' : 'block';
     logoutButton.style.display = userLoggedIn ? 'block' : 'none';
+    statsPanel.style.display = userLoggedIn ? 'block' : 'none';
+
     if (userLoggedIn) loadDataAccordingToViewType();
 
     // Fetch data function
@@ -111,7 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error fetching verbs:', error);
-                alert('Please log in to view data.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Please log in to view data.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+
             });
     }
 
@@ -125,8 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'success') {
                     logoutButton.style.display = 'none';
                     loginModal.style.display = 'block';
-                    alert('Logged out successfully!');
-                    window.location.reload();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Logged out successfully!.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload();
+                    });
                 }
             })
             .catch(error => console.error('Error during logout:', error));
@@ -159,13 +174,24 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert('Login successful!');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Login successful!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.reload();
+                    });
                     loginModal.style.display = 'none';
                     logoutButton.style.display = 'block';
-                    // fetchData(1);
-                    window.location.reload();
+                    
                 } else {
-                    alert('Error: ' + data.error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error
+                    });
+
                 }
             })
             .catch(error => console.error('Error during login:', error));
@@ -184,12 +210,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert('Signup successful! Please log in.');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Signup successful! Please log in.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
                     signupForm.style.display = 'none';
                     loginForm.style.display = 'block';
                     modalTitle.textContent = 'Login';
                 } else {
-                    alert('Error: ' + data.error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error
+                    });
                 }
             })
             .catch(error => console.error('Error during signup:', error));
@@ -198,11 +233,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('stats-button').addEventListener('click', () => {
         sendStatsToServer()
             .then(() => {
-                alert('Record saved successfully!');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Record saved successfully!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
             })
             .catch(error => {
                 console.error('Error saving statistics:', error);
-                alert('Failed to save record.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to save record.',
+                    text: error
+                });
             });
     });
 
@@ -231,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideSaveStatsButton() {
         saveStatsButton.style.display = 'none';
         statsPanel.style.display = 'none';
-        
+
     }
 
     function showSaveStatsButton() {
@@ -244,14 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPage > 1) {
             saveCardStates(currentPage);
             currentPage--;
-            fetchData(currentPage);
+            loadDataAccordingToViewType()
         }
     });
 
     document.getElementById('next-page').addEventListener('click', () => {
         saveCardStates(currentPage);
         currentPage++;
-        fetchData(currentPage);
+        loadDataAccordingToViewType()
     });
 
     function saveCardStates(page) {
@@ -276,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-   
+
 
     window.addEventListener('beforeunload', sendStatsToServer);
 
@@ -340,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  
+
     function sendStatsToServer() {
         const statsData = {
             justFlipped: stats.justFlippedCards,
@@ -364,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function loadDataAccordingToViewType(){
+    function loadDataAccordingToViewType() {
         if (currentView === 'All') {
             fetchData(currentPage);
         } else if (currentView === 'Failure') {

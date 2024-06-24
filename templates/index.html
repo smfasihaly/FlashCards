@@ -7,6 +7,8 @@
     <title>Flip Card</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -54,9 +56,9 @@
         <p>Success: <span id="stats-success">0</span></p>
         <p>Failure: <span id="stats-failure">0</span></p>
         <p>Just Flipped: <span id="stats-just-flipped">0</span></p>
-          <div class="">
-        <a href="#" id="stats-button" title="Save your current progress, including just flipped and incorrectly answered cards.">Save Mistakes</a>
-    </div>
+         
+        <a href="#" id="stats-button" style= "font-weight: bold; background-color: black; color: white;     margin: 12px auto;" title="Save your current progress, including just flipped and incorrectly answered cards.">Save Mistakes</a>
+    
     </div>
   
     <div class="cards-container" id="cards-container">
