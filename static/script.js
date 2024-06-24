@@ -448,17 +448,6 @@ function flipCard(card, index, page) {
     sessionStorage.setItem(cardStateKey, JSON.stringify({ flipped: !flipped }));
 }
 
-function removeVerbFromSheet(verb, sheetName) {
-    fetch('/remove_verb', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ verb, sheetName })
-    })
-        .then(response => response.json())
-        .then(data => console.log(`Verb removed from ${sheetName} sheet:`, data))
-        .catch(error => console.error(`Error removing verb from ${sheetName} sheet:`, error));
-}
-
 
 function removeVerbFromSheet(verb, sheetName) {
     fetch('/remove_verb', {
