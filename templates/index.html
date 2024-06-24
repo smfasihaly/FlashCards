@@ -10,33 +10,55 @@
 </head>
 
 <body>
+
     <div class="header">
         <div class="header-left">
             <h1><i class="fas fa-clone"></i> FLASH CARD</h1>
         </div>
-        <div class="header-buttons">
-            <a href="#" id="login-button" style="display: {{ 'none' if user_logged_in else 'block' }};">Login/Signup</a>
-            <a href="#" id="stats-button">Save Stats</a>
+        <div class="info-icon">
+            <i class="fas fa-info-circle" id="info-button"><span style="padding-left: 5px;">How to play!</span></i>
+        </div>
+     
+        <div class="header-center">
+            <div class="header-buttons"> 
             <a href="#" id="show-all-button">Show All</a>
             <a href="#" id="previous-failed-button">Previous Failed</a>
             <a href="#" id="previous-flipped-button">Previous Just Flipped</a>
-            <a href="#" id="flip-language-button">
-                <i class="fas fa-exchange-alt"></i> Flip Language
-            </a>
-            <a href="#" id="logout-button" style="display: {{ 'block' if user_logged_in else 'none' }};">Logout</a>
         </div>
-        <div class="user-info" style="display: {{ 'block' if user_logged_in else 'none' }};">
-            <i class="fas fa-user-circle"></i>
-            <span id="username">{{ username }}</span>
         </div>
-        <div class="language-direction">
-            <span id="language-direction-text">{{ 'Italian to English' if not is_flipped_language else 'English to Italian' }}</span>
-        </div>
-        <div class="info-icon">
-            <i class="fas fa-info-circle" id="info-button"></i>
+        <div class="header-right">
+            <div class="header-buttons">
+                <a href="#" id="flip-language-button">
+                    <i class="fas fa-exchange-alt"></i> Flip Language
+                </a>
+            </div>
+            <div class="language-direction">
+                <div>
+                    <small>Current Language Direction</small>
+                    <span id="language-direction-text">{{ 'Italian to English' if not is_flipped_language else 'English to Italian' }}</span>
+                </div>
+            </div>
+            <div class="user-info" style="display: {{ 'block' if user_logged_in else 'none' }};">
+                <i class="fas fa-user-circle"></i>
+                <span id="username">{{ username }}</span>
+                <i class="fas fa-caret-down"></i> <!-- Down arrow icon -->
+                <div class="dropdown-content">
+                    <a href="#" id="logout-button" style="display: {{ 'block' if user_logged_in else 'none' }};">Logout</a>
+                </div>
+            </div>
         </div>
     </div>
-
+    
+    <div class="stats-panel" id="stats-panel">
+        <h2>Player Stats</h2>
+        <p>Success: <span id="stats-success">0</span></p>
+        <p>Failure: <span id="stats-failure">0</span></p>
+        <p>Just Flipped: <span id="stats-just-flipped">0</span></p>
+          <div class="">
+        <a href="#" id="stats-button" title="Save your current progress, including just flipped and incorrectly answered cards.">Save Mistakes</a>
+    </div>
+    </div>
+  
     <div class="cards-container" id="cards-container">
         <!-- Flip cards will be dynamically inserted here -->
     </div>
@@ -45,7 +67,10 @@
         <span id="page-info"></span>
         <button id="next-page">Next</button>
     </div>
-    <div id="stats-output"></div>
+
+
+
+
 
     <!-- Login/Signup Modal -->
     <div id="login-modal" class="modal">
@@ -70,81 +95,89 @@
         </div>
     </div>
 
-<!-- How to Play Modal -->
-<div id="how-to-play-modal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="close-how-to-play">&times;</span>
-        <h2>How to Play</h2>
-        <ul>
-            <li><strong>Start Playing:</strong>
-                <ul>
-                    <li>Upon entering the app, you'll see a set of cards with Italian verbs on the front.</li>
-                </ul>
-            </li>
-            <li><strong>Flipping Cards:</strong>
-                <ul>
-                    <li>Click on a card to flip it and reveal the English translation on the back.</li>
-                    <li>Alternatively, you can type your answer in the input field and press Enter to flip the card.</li>
-                </ul>
-            </li>
-            <li><strong>Using the Input Field:</strong>
-                <ul>
-                    <li>Type your guess for the translation in the input field provided on each card.</li>
-                    <li>This helps track your learning progress more effectively.</li>
-                </ul>
-            </li>
-            <li><strong>Visual Feedback:</strong>
-                <ul>
-                    <li>If you type the correct answer, the card will turn <strong>green</strong>.</li>
-                    <li>If your answer is incorrect, the card will turn <strong>red</strong>.</li>
-                    <li>If you flip the card without typing an answer, it will turn <strong>blue</strong>.</li>
-                </ul>
-            </li>
-            <li><strong>Navigating Cards:</strong>
-                <ul>
-                    <li>Use the "Previous" and "Next" buttons at the bottom to navigate through different pages of cards.</li>
-                </ul>
-            </li>
-            <li><strong>Tracking Progress:</strong>
-                <ul>
-                    <li>The app tracks your successes and failures as you interact with the cards.</li>
-                    <li>Your statistics are displayed and can be saved for future reference.</li>
-                </ul>
-            </li>
-            <li><strong>Saving Statistics:</strong>
-                <ul>
-                    <li>Click on the "Save Stats" button to save your current progress.</li>
-                    <li>The just flipped cards (blue) and the incorrectly answered cards (red) will be saved in the database for later practice.</li>
-                </ul>
-            </li>
-            <li><strong>Persistence of Data:</strong>
-                <ul>
-                    <li>When you refresh the page or re-login, the colored state of the cards (green, red, blue) will not be retained. You will need to interact with the cards again.</li>
-                    <li>However, the cards that you just flipped (blue) and those you previously answered incorrectly (red) will always be available for practice until you answer them correctly.</li>
-                </ul>
-            </li>
-            <li><strong>Using Filters:</strong>
-                <ul>
-                    <li>Use the "Show All" button to view all cards.</li>
-                    <li>Use the "Previous Failed" button to review cards you previously answered incorrectly.</li>
-                    <li>Use the "Previous Just Flipped" button to revisit cards you recently interacted with.</li>
-                </ul>
-            </li>
-            <li><strong>Practice and Progress:</strong>
-                <ul>
-                    <li>The cards marked as just flipped (blue) and previously failed (red) will remain in the system for you to practice later.</li>
-                    <li>Continue practicing these cards until you answer them correctly, upon which they will be removed from the failed list.</li>
-                </ul>
-            </li>
-            <li><strong>Enjoy Learning!</strong>
-                <ul>
-                    <li>Engage with the cards regularly to improve your Italian verb knowledge.</li>
-                    <li>Utilize the app's features to track and enhance your learning journey.</li>
-                </ul>
-            </li>
-        </ul>
+    <!-- How to Play Modal -->
+    <div id="how-to-play-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-how-to-play">&times;</span>
+            <h2>How to Play</h2>
+            <ul>
+                <li><strong>Start Playing:</strong>
+                    <ul>
+                        <li>Upon entering the app, you'll see a set of cards with Italian verbs on the front.</li>
+                    </ul>
+                </li>
+                <li><strong>Flipping Cards:</strong>
+                    <ul>
+                        <li>Click on a card to flip it and reveal the English translation on the back.</li>
+                        <li>Alternatively, you can type your answer in the input field and press Enter to flip the card.
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Using the Input Field:</strong>
+                    <ul>
+                        <li>Type your guess for the translation in the input field provided on each card.</li>
+                        <li>This helps track your learning progress more effectively.</li>
+                    </ul>
+                </li>
+                <li><strong>Visual Feedback:</strong>
+                    <ul>
+                        <li>If you type the correct answer, the card will turn <strong>green</strong>.</li>
+                        <li>If your answer is incorrect, the card will turn <strong>red</strong>.</li>
+                        <li>If you flip the card without typing an answer, it will turn <strong>blue</strong>.</li>
+                    </ul>
+                </li>
+                <li><strong>Navigating Cards:</strong>
+                    <ul>
+                        <li>Use the "Previous" and "Next" buttons at the bottom to navigate through different pages of
+                            cards.</li>
+                    </ul>
+                </li>
+                <li><strong>Tracking Progress:</strong>
+                    <ul>
+                        <li>The app tracks your successes and failures as you interact with the cards.</li>
+                        <li>Your statistics are displayed and can be saved for future reference.</li>
+                    </ul>
+                </li>
+                <li><strong>Saving Statistics:</strong>
+                    <ul>
+                        <li>Click on the "Save Mistakes" button to save your current progress.</li>
+                        <li>The just flipped cards (blue) and the incorrectly answered cards (red) will be saved in the
+                            database for later practice.</li>
+                    </ul>
+                </li>
+                <li><strong>Persistence of Data:</strong>
+                    <ul>
+                        <li>When you refresh the page or re-login, the colored state of the cards (green, red, blue)
+                            will not be retained. You will need to interact with the cards again.</li>
+                        <li>However, the cards that you just flipped (blue) and those you previously answered
+                            incorrectly (red) will always be available for practice until you answer them correctly.
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Using Filters:</strong>
+                    <ul>
+                        <li>Use the "Show All" button to view all cards.</li>
+                        <li>Use the "Previous Failed" button to review cards you previously answered incorrectly.</li>
+                        <li>Use the "Previous Just Flipped" button to revisit cards you recently interacted with.</li>
+                    </ul>
+                </li>
+                <li><strong>Practice and Progress:</strong>
+                    <ul>
+                        <li>The cards marked as just flipped (blue) and previously failed (red) will remain in the
+                            system for you to practice later.</li>
+                        <li>Continue practicing these cards until you answer them correctly, upon which they will be
+                            removed from the failed list.</li>
+                    </ul>
+                </li>
+                <li><strong>Enjoy Learning!</strong>
+                    <ul>
+                        <li>Engage with the cards regularly to improve your Italian verb knowledge.</li>
+                        <li>Utilize the app's features to track and enhance your learning journey.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
-</div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script type="text/javascript">

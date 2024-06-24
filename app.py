@@ -53,7 +53,7 @@ def get_verbs_from_sheet(sheet_name):
         sheet_data = filtered_data.to_dict(orient='records')
         random.shuffle(sheet_data)
         page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 10))
+        per_page = int(request.args.get('per_page', 9))
         start = (page - 1) * per_page
         end = start + per_page
         total_pages = (len(sheet_data) + per_page - 1) // per_page

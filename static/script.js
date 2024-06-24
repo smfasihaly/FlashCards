@@ -1,18 +1,21 @@
-let stats = {
-    success: 0,
-    failure: 0,
-    justFlipped: 0,
-    justFlippedCards: [],
-    failureCards: []
-};
+let stats = resetStatsAndCardStates();
 let cardStates = [];
 let isFlippedLanguage = localStorage.getItem('isFlippedLanguage') === 'true';
 let currentView = localStorage.getItem('currentView') || 'All';
 
+function resetStatsAndCardStates() {
+    return {
+        success: 0,
+        failure: 0,
+        justFlipped: 0,
+        justFlippedCards: [],
+        failureCards: []
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     const perPage = 9;
-    const loginButton = document.getElementById('login-button');
     const logoutButton = document.getElementById('logout-button');
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
@@ -21,45 +24,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const loginModal = document.getElementById('login-modal');
     const saveStatsButton = document.getElementById('stats-button');
+    const statsPanel = document.getElementById('stats-panel');
     const infoButton = document.getElementById('info-button');
     const howToPlayModal = document.getElementById('how-to-play-modal');
     const closeHowToPlay = document.getElementById('close-how-to-play');
     const flipLanguageButton = document.getElementById('flip-language-button');
     const languageDirectionText = document.getElementById('language-direction-text');
-    const headerButtons = document.querySelector('.header-buttons');
+    const headerButtons = document.querySelector('.header-center');
 
     headerButtons.addEventListener('click', (event) => {
         if (event.target.tagName === 'A') {
             const links = headerButtons.querySelectorAll('a');
-            links.forEach(link => link.classList.remove('active')); 
+            links.forEach(link => link.classList.remove('active'));
         }
-       setActive();
+        setActive();
     });
 
-     // Set the initial active link based on currentView
-    function setActive(){
+    // Refactored: Abstracted the logic to find and add 'active' class to a link
+    function addActiveClass(linkId) {
+        const link = document.getElementById(linkId);
+        if (link) {
+            link.classList.add('active');
+        }
+    }
+
+    // Set the initial active link based on currentView
+    function setActive() {
         if (currentView === 'All') {
-            const showAllLink = document.getElementById('show-all-button');
-            if (showAllLink) {
-                showAllLink.classList.add('active');
-            }
+            addActiveClass('show-all-button'); // This is refactored code
         } else if (currentView === 'Failure') {
-            const previousFailedLink = document.getElementById('previous-failed-button');
-            if (previousFailedLink) {
-                previousFailedLink.classList.add('active');
-            }
+            addActiveClass('previous-failed-button'); // This is refactored code
         } else if (currentView === 'JustFlipped') {
-            const previousFlippedLink = document.getElementById('previous-flipped-button');
-            if (previousFlippedLink) {
-                previousFlippedLink.classList.add('active');
-            }
+            addActiveClass('previous-flipped-button'); // This is refactored code
         }
     }
     setActive();
-    
+
     languageDirectionText.textContent = isFlippedLanguage ? 'English to Italian' : 'Italian to English';
 
-    
+
     infoButton.addEventListener('click', () => {
         howToPlayModal.style.display = 'block';
         document.querySelector('.cards-container').classList.add('blur');
@@ -80,30 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     flipLanguageButton.addEventListener('click', () => {
-        stats = {
-            success: 0,
-            failure: 0,
-            justFlipped: 0,
-            justFlippedCards: [],
-            failureCards: []
-        };
+        stats = resetStatsAndCardStates();
         cardStates = [];
         isFlippedLanguage = !isFlippedLanguage;
         localStorage.setItem('isFlippedLanguage', isFlippedLanguage);
         languageDirectionText.textContent = isFlippedLanguage ? 'English to Italian' : 'Italian to English';
-         if (currentView === 'All') {
-        fetchData(currentPage);
-    } else if (currentView === 'Failure') {
-        loadVerbs('Failure', currentPage);
-    } else if (currentView === 'JustFlipped') {
-        loadVerbs('JustFlipped', currentPage);
-    }
+        loadDataAccordingToViewType();
     });
 
     loginModal.style.display = userLoggedIn ? 'none' : 'block';
-    loginButton.style.display = userLoggedIn ? 'none' : 'block';
     logoutButton.style.display = userLoggedIn ? 'block' : 'none';
-    if (userLoggedIn) fetchData(1);
+    if (userLoggedIn) loadDataAccordingToViewType();
 
     // Fetch data function
     function fetchData(page) {
@@ -127,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     sessionStorage.clear();
 
-    loginButton.addEventListener('click', () => loginModal.style.display = 'block');
 
     logoutButton.addEventListener('click', () => {
         fetch('/logout', { method: 'POST' })
@@ -135,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.status === 'success') {
                     logoutButton.style.display = 'none';
-                    loginButton.style.display = 'block';
                     loginModal.style.display = 'block';
                     alert('Logged out successfully!');
                     window.location.reload();
@@ -173,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'success') {
                     alert('Login successful!');
                     loginModal.style.display = 'none';
-                    loginButton.style.display = 'none';
                     logoutButton.style.display = 'block';
                     // fetchData(1);
                     window.location.reload();
@@ -208,7 +195,16 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error during signup:', error));
     });
 
-    document.getElementById('stats-button').addEventListener('click', showStats);
+    document.getElementById('stats-button').addEventListener('click', () => {
+        sendStatsToServer()
+            .then(() => {
+                alert('Record saved successfully!');
+            })
+            .catch(error => {
+                console.error('Error saving statistics:', error);
+                alert('Failed to save record.');
+            });
+    });
 
 
     document.getElementById('show-all-button').addEventListener('click', () => {
@@ -221,23 +217,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('previous-failed-button').addEventListener('click', () => {
         currentView = 'Failure';
         localStorage.setItem('currentView', currentView);
-        loadVerbs('Failure', currentPage, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
+        loadVerbs('Failure', 1, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
         hideSaveStatsButton();  // Hide the Save Stats button when showing previously failed data
     });
 
     document.getElementById('previous-flipped-button').addEventListener('click', () => {
         currentView = 'JustFlipped';
         localStorage.setItem('currentView', currentView);
-        loadVerbs('JustFlipped', currentPage, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
+        loadVerbs('JustFlipped', 1, isFlippedLanguage ? 'English to Italian' : 'Italian to English');
         hideSaveStatsButton();  // Hide the Save Stats button when showing previous flipped data
     });
 
     function hideSaveStatsButton() {
         saveStatsButton.style.display = 'none';
+        statsPanel.style.display = 'none';
+        
     }
 
     function showSaveStatsButton() {
         saveStatsButton.style.display = 'block';
+        statsPanel.style.display = 'block';
     }
 
 
@@ -277,9 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeStats();
-    });
+   
 
     window.addEventListener('beforeunload', sendStatsToServer);
 
@@ -293,19 +290,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.error) {
                     console.error(data.error);
                 } else {
-                    displayCards(data.verbs);
                     updatePaginationControls(data.total_pages, data.current_page);
+                    displayCards(data.verbs);
                 }
             })
             .catch(error => console.error('Error loading verbs:', error));
-
-        stats = {
-            success: 0,
-            failure: 0,
-            justFlipped: 0,
-            justFlippedCards: [],
-            failureCards: []
-        };
+        stats = resetStatsAndCardStates(); // This is refactored code
         cardStates = [];
     }
 
@@ -350,25 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    function showStats() {
-        const statsOutput = document.getElementById('stats-output');
-        statsOutput.innerHTML = `
-            <button id="close-stats">&times;</button>
-            <p>Success: ${stats.success}</p>
-            <p>Failure: ${stats.failure}</p>
-            <p>Just Flipped: ${stats.justFlipped}</p>
-        `;
-        statsOutput.style.display = 'block';
-        document.querySelector('.cards-container').classList.add('blur');
-        document.getElementById('close-stats').addEventListener('click', closeStats);
-
-        // Only send stats to the server if viewing all data
-        if (currentView === 'All') {
-            sendStatsToServer();
-        }
-
-    }
-
+  
     function sendStatsToServer() {
         const statsData = {
             justFlipped: stats.justFlippedCards,
@@ -376,32 +348,31 @@ document.addEventListener('DOMContentLoaded', () => {
             languageDirection: isFlippedLanguage ? 'English to Italian' : 'Italian to English'
         };
 
-        fetch('/save_stats', {
+        return fetch('/save_stats', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(statsData)
         })
             .then(response => response.json())
-            .then(data => console.log('Statistics saved:', data))
-            .catch(error => console.error('Error saving statistics:', error));
+            .then(data => {
+                if (data.status !== 'success') {
+                    throw new Error('Failed to save statistics');
+                }
+                console.log('Statistics saved:', data);
+            });
     }
 
 
 
-    function closeStats() {
-        document.getElementById('stats-output').style.display = 'none';
-        document.querySelector('.cards-container').classList.remove('blur');
-        window.location.reload();
+    function loadDataAccordingToViewType(){
+        if (currentView === 'All') {
+            fetchData(currentPage);
+        } else if (currentView === 'Failure') {
+            loadVerbs('Failure', currentPage);
+        } else if (currentView === 'JustFlipped') {
+            loadVerbs('JustFlipped', currentPage);
+        }
     }
-
-    function hideSaveStatsButton() {
-        saveStatsButton.style.display = 'none';
-    }
-
-    function showSaveStatsButton() {
-        saveStatsButton.style.display = 'block';
-    }
-
 
 });
 
@@ -470,6 +441,7 @@ function flipCard(card, index, page) {
 
             });
         }
+        updateStatsPanel();
     }
 
     innerCard.classList.toggle('flipped');
@@ -498,3 +470,9 @@ function removeVerbFromSheet(verb, sheetName) {
         .then(data => console.log(`Verb removed from ${sheetName} sheet:`, data))
         .catch(error => console.error(`Error removing verb from ${sheetName} sheet:`, error));
 }
+function updateStatsPanel() {
+    document.getElementById('stats-success').textContent = stats.success;
+    document.getElementById('stats-failure').textContent = stats.failure;
+    document.getElementById('stats-just-flipped').textContent = stats.justFlipped;
+}
+
