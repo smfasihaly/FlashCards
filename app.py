@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Read the Excel file
-excel_file_path = 'learnITalian/Data/words.xlsx'
+excel_file_path = 'Data/words.xlsx'
 data = pd.read_excel(excel_file_path)
 
 # Convert the data to a list of dictionaries
