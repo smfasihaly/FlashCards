@@ -449,7 +449,7 @@ function flipCard(card, index, page) {
 
     if (!innerCard.classList.contains('flipped') && !cardStates[cardStateKey]) {
         document.getElementById(`inputValue-${index}`).disabled = true;
-        const inputValues = inputValue.split(',').map(value => value.trim().replace(/to /g, ''));
+            const inputValues = inputValue.split(',').map(value => value.trim().replace(/to /g, ''));
         const significantTitles = backTitle.split(',').map(title => title.trim().replace(/to /g, ''));
 
         const allMatch = inputValues.every(value => significantTitles.includes(value));
