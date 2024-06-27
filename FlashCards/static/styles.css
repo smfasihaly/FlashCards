@@ -11,6 +11,7 @@ body {
     position: relative;
 }
 
+
 .cards-container {
     display: flex;
     flex-wrap: wrap;
@@ -23,6 +24,7 @@ body {
     box-sizing: border-box;
     padding-top: 60px;
 }
+
 .pagination-controls {
     display: flex;
     justify-content: center;
@@ -445,6 +447,7 @@ button[type="submit"]:hover {
     display: flex;
     flex-direction: column;
 }
+
 .stats-panel {
     position: fixed;
     top: 80px; /* Adjusted to avoid overlap with the header */
@@ -465,6 +468,11 @@ button[type="submit"]:hover {
     font-size: 14px;
 }
 
+.stats-panel p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
 
 
 /* Media Queries for Responsive Design */
@@ -472,10 +480,9 @@ button[type="submit"]:hover {
     .header {
         flex-direction: column;
         align-items: flex-start;
-        
     }
 
-    .header-buttons, .header-center , .header-right {
+    .header-buttons, .header-center, .header-right {
         flex-direction: column;
         width: 100%;
     }
@@ -500,6 +507,7 @@ button[type="submit"]:hover {
         width: 100%;
         max-width: 300px;
     }
+
     .stats-panel {
         position: relative; /* Change to relative position on mobile */
         top: 10px; /* Adjusted for smaller screens */
@@ -534,6 +542,7 @@ button[type="submit"]:hover {
         width: 200px;
     }
 }
+
 @media (max-width: 600px) {
     .modal-content {
         width: 90%; /* Full width on mobile */
@@ -561,3 +570,26 @@ button[type="submit"]:hover {
     }
 }
 
+@media (max-width: 1662px) {
+    #stats-panel {
+        top: 100px;
+        left: 5px;
+        width: 250px;
+        max-width: 303px;
+        min-width: 200px;
+    }
+
+    .cards-container {
+        padding-top: 20px;
+    }
+}
+
+@media (max-width: 1530px) {
+    #stats-panel {
+        position: relative; /* Change to relative position on smaller screens */
+        top: 10px; /* Adjusted for smaller screens */
+        left: 0;
+        right: 0;
+        max-width: none;
+    }
+}
